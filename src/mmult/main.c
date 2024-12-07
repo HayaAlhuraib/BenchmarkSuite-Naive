@@ -76,6 +76,7 @@ int main(int argc, char** argv) {
 
     /* Initialize matrices */
     size_t size = data_size;  // Square matrix dimensions
+    srand((unsigned int)time(NULL)); 
     float* A = malloc(size * size * sizeof(float));
     float* B = malloc(size * size * sizeof(float));
     float* R = malloc(size * size * sizeof(float));
