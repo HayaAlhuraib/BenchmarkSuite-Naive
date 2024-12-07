@@ -5,8 +5,8 @@
 
 // Define the argument structure
 typedef struct {
-  byte*   input;
-  byte*   output;
+  void*   input;
+  void*   output;
 
   size_t size;
 
