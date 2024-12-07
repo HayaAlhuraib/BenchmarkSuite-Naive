@@ -13,8 +13,7 @@
 #include <errno.h>
 
 /* Include all implementations declarations */
-#include "impl/naive.h"
-#include "impl/opt.h"  // Include optimized implementation
+#include "impl/naive.h"  // Updated for mmult naive implementation
 
 /* Include common headers */
 #include "common/types.h"
@@ -23,19 +22,7 @@
 /* Include application-specific headers */
 #include "include/types.h"
 
-const int SIZE_DATA = 256; // Default matrix size (if not provided)
-
-/* Helper function to print a matrix */
-void print_matrix(const char* name, float* matrix, size_t size) {
-    printf("%s:\n", name);
-    for (size_t i = 0; i < size; i++) {
-        for (size_t j = 0; j < size; j++) {
-            printf("%.2f ", matrix[i * size + j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
+const int SIZE_DATA = 4 * 1024 * 1024;
 
 int main(int argc, char** argv) {
     /* Set the buffer for printf to NULL */
@@ -49,11 +36,10 @@ int main(int argc, char** argv) {
     int nstdevs  = 3;
 
     /* Data */
-    int data_size = SIZE_DATA; // Holds the size passed to the program
+    int data_size = SIZE_DATA;
 
     /* Parse arguments */
-    void* (*impl_scalar_naive_ptr)(void* args) = impl_scalar_naive;
-    void* (*impl_scalar_opt_ptr)(void* args) = impl_scalar_opt;
+    void* (*impl_scalar_naive_ptr)(void* args) = impl_scalar_naive;  // Updated
 
     /* Chosen */
     void* (*impl)(void* args) = NULL;
@@ -66,8 +52,6 @@ int main(int argc, char** argv) {
             assert(++i < argc);
             if (strcmp(argv[i], "naive") == 0) {
                 impl = impl_scalar_naive_ptr; impl_str = "scalar_naive";
-            } else if (strcmp(argv[i], "opt") == 0) {
-                impl = impl_scalar_opt_ptr; impl_str = "scalar_opt";
             } else {
                 impl = NULL; impl_str = "unknown";
             }
@@ -76,75 +60,63 @@ int main(int argc, char** argv) {
 
         /* Input/output data size */
         if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--size") == 0) {
-            assert(++i < argc); // Ensure an argument follows the flag
-            data_size = atoi(argv[i]); // Parse size as an integer
+            assert(++i < argc);
+            data_size = atoi(argv[i]);
             continue;
         }
     }
 
     if (help || impl == NULL) {
-        printf("Usage: %s {-i | --impl} naive|opt [Options]\n", argv[0]);
+        printf("Usage: %s {-i | --impl} naive [Options]\n", argv[0]);
         printf("  Options:\n");
         printf("    -h | --help      Print this message\n");
-        printf("    -s | --size      Size of input matrices (default = %d)\n", SIZE_DATA);
+        printf("    -s | --size      Size of input matrices (default = %d)\n", data_size);
         exit(help ? 0 : 1);
     }
 
     /* Initialize matrices */
     size_t size = data_size;  // Square matrix dimensions
-    srand((unsigned int)time(NULL)); // Seed the random number generator
     float* A = malloc(size * size * sizeof(float));
-    float* B = malloc(size * size * sizeof(float)); 
+    float* B = malloc(size * size * sizeof(float));
     float* R = malloc(size * size * sizeof(float));
 
-
-    if (!input || !R) {
+    if (!A || !B || !R) {
         fprintf(stderr, "Memory allocation failed.\n");
         exit(1);
     }
 
-    /* Set A and B inside input */
-    float* A = input;                           // A starts at the beginning
-    float* B = input + size * size;             // B starts right after A
-
     /* Initialize input matrices */
     for (size_t i = 0; i < size * size; i++) {
-        A[i] = (float)(rand() % 10);            // Random numbers between 0 and 9
-        B[i] = (float)(rand() % 10);            // Random numbers between 0 and 9
+        A[i] = (float)(rand() % 10);
+        B[i] = (float)(rand() % 10);
     }
 
-    /* Print input matrices */
-    print_matrix("Matrix A", A, size);
-    print_matrix("Matrix B", B, size);
+    /* Prepare arguments */
+    args_t args = {
+        .input = (void*)A,
+        .output = (void*)R,
+        .size = size,
+        .cpu = cpu,
+        .nthreads = nthreads
+    };
 
-    /* Compare Naive and Optimized Implementations */
-    float* R_naive = malloc(size * size * sizeof(float));
-    args_t args_naive = { .input = input, .output = R_naive, .size = size };
+    /* Run the implementation */
+    printf("Running %s implementation:\n", impl_str);
+    (*impl)((void*)&args);
 
-    clock_t start = clock();
-    impl_scalar_naive(&args_naive);
-    clock_t end = clock();
-    double naive_time = (double)(end - start) / CLOCKS_PER_SEC;
-
-    printf("Naive Runtime: %.6f seconds\n", naive_time);
-    print_matrix("Result Matrix R (Naive)", R_naive, size);
-
-    args_t args_opt = { .input = input, .output = R, .size = size };
-
-    start = clock();
-    impl_scalar_opt(&args_opt);
-    end = clock();
-    double opt_time = (double)(end - start) / CLOCKS_PER_SEC;
-
-    printf("Optimized Runtime: %.6f seconds\n", opt_time);
-    print_matrix("Result Matrix R (Optimized)", R, size);
-
-    printf("Speedup: %.2fx\n", naive_time / opt_time);
+    /* Display results (optional) */
+    printf("Result matrix R:\n");
+    for (size_t i = 0; i < size; i++) {
+        for (size_t j = 0; j < size; j++) {
+            printf("%.2f ", R[i * size + j]);
+        }
+        printf("\n");
+    }
 
     /* Free memory */
-    free(input);
+    free(A);
+    free(B);
     free(R);
-    free(R_naive);
 
     return 0;
 }
