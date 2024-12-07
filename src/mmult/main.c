@@ -78,9 +78,9 @@ int main(int argc, char** argv) {
     size_t size = data_size;  // Square matrix dimensions
     srand((unsigned int)time(NULL)); 
 
-    float* A = malloc(size * size * sizeof(float));
-    float* B = malloc(size * size * sizeof(float));
-    float* R = malloc(size * size * sizeof(float));
+    char* A = malloc(size * size * sizeof(char));
+    char* B = malloc(size * size * sizeof(char));
+    char* R = malloc(size * size * sizeof(char));
 
     if (!A || !B || !R) {
         fprintf(stderr, "Memory allocation failed.\n");
