@@ -103,7 +103,21 @@ int main(int argc, char** argv) {
     /* Run the implementation */
     printf("Running %s implementation:\n", impl_str);
     (*impl)((void*)&args);
-
+    /* Display results (optional) */
+    printf("matrix A:\n");
+    for (size_t i = 0; i < size; i++) {
+        for (size_t j = 0; j < size; j++) {
+            printf("%.2f ", A[i * size + j]);
+        }
+        printf("\n");
+    }
+        printf("matrix B:\n");
+    for (size_t i = 0; i < size; i++) {
+        for (size_t j = 0; j < size; j++) {
+            printf("%.2f ", B[i * size + j]);
+        }
+        printf("\n");
+    }
     /* Display results (optional) */
     printf("Result matrix R:\n");
     for (size_t i = 0; i < size; i++) {
