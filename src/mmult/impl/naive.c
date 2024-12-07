@@ -16,9 +16,9 @@ void* impl_scalar_naive(void* args) {
     args_t* arguments = (args_t*)args;
     size_t size = arguments->size;
 
-    byte* A = (byte*)arguments->input;
-    byte* B = (byte*)(arguments->input + size * size * sizeof(float));
-    byte* R = (byte*)arguments->output;
+    float* A = (float*)arguments->input;
+    float* B = (float*)(arguments->input + size * size * sizeof(float));
+    float* R = (float*)arguments->output;
 
     /* Perform matrix-matrix multiplication */
     for (size_t i = 0; i < size; i++) {
