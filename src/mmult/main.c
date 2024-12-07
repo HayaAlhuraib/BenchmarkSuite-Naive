@@ -102,7 +102,10 @@ int main(int argc, char** argv) {
 
     /* Run the implementation */
     printf("Running %s implementation:\n", impl_str);
+    clock_t start = clock();
     (*impl)((void*)&args);
+    clock_t end = clock();
+    double naive_time = (double)(end - start) / CLOCKS_PER_SEC;
     /* Display results (optional) */
     printf("matrix A:\n");
     for (size_t i = 0; i < size; i++) {
@@ -126,7 +129,7 @@ int main(int argc, char** argv) {
         }
         printf("\n");
     }
-
+   printf("Naive Runtime: %.6f seconds\n", naive_time);
     /* Free memory */
     free(A);
     free(B);
